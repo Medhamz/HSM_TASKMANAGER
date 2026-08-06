@@ -1,41 +1,94 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout :: head}"><title>Test Classes</title></head>
+<head th:replace="~{layout :: head}">
+    <title>Test Classes</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
 <body th:replace="~{layout :: body}">
 <div th:fragment="content">
-    <div class="d-flex justify-content-between align-items-center">
-        <h2>Test Classes</h2>
-        <a href="/admin/tests/new" class="btn btn-primary">+ New Test</a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-flask me-2"></i>Test Classes Management</h2>
+        <div>
+            <button class="btn btn-outline-primary me-2" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <a href="/admin/tests/new" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Test
+            </a>
+        </div>
     </div>
-    <table class="table table-striped mt-3">
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>Project</th>
-            <th>Type</th>
-            <th>Status</th>
-            <th>Start</th>
-            <th>Est. Hours</th>
-            <th>Completion</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="t : ${tests}">
-            <td th:text="${t.name}">Name</td>
-            <td th:text="${t.project.name}">Project</td>
-            <td th:text="${t.type}">Type</td>
-            <td><span class="badge" th:classappend="${t.status == 'COMPLETED' ? 'bg-success' : t.status == 'IN_PROGRESS' ? 'bg-warning' : t.status == 'SUSPENDED' ? 'bg-danger' : 'bg-secondary'}" th:text="${t.status}">Status</span></td>
-            <td th:text="${t.startDate}">Start</td>
-            <td th:text="${t.estimatedHours}">Hrs</td>
-            <td th:text="${t.completionDate}">Completion</td>
-            <td>
-                <a th:href="@{/admin/tests/edit/{id}(id=${t.id})}" class="btn btn-sm btn-warning">Edit</a>
-                <a th:href="@{/admin/tests/delete/{id}(id=${t.id})}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this test?')">Delete</a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+
+    <!-- Filtres et recherche -->
+    <div class="filter-bar">
+        <input type="text" id="searchInput" placeholder="🔍 Search..." class="form-control form-control-sm" style="width:200px;">
+        <select class="filter-select form-control form-control-sm" data-table="testsTable" data-filter="status" style="width:150px;">
+            <option value="">All Status</option>
+            <option value="TO_DO">To Do</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="SUSPENDED">Suspended</option>
+            <option value="COMPLETED">Completed</option>
+        </select>
+        <select class="filter-select form-control form-control-sm" data-table="testsTable" data-filter="type" style="width:150px;">
+            <option value="">All Types</option>
+            <option value="UNIT">Unit</option>
+            <option value="INTEGRATION">Integration</option>
+        </select>
+        <div class="ms-auto">
+            <button id="exportCsv" class="btn btn-sm btn-success">
+                <i class="fas fa-file-csv"></i> CSV
+            </button>
+            <button id="exportPdf" class="btn btn-sm btn-danger">
+                <i class="fas fa-file-pdf"></i> PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Tableau -->
+    <div class="table-responsive card-3d">
+        <table class="table table-hover" id="testsTable">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Project</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Start</th>
+                <th>Est. Hours</th>
+                <th>Completion</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${tests}">
+                <td th:text="${t.name}" data-status="${t.status}" data-type="${t.type}"></td>
+                <td th:text="${t.project.name}"></td>
+                <td th:text="${t.type}" data-type="${t.type}"></td>
+                <td>
+                        <span class="badge"
+                              th:classappend="${t.status == 'COMPLETED' ? 'badge-completed' :
+                                              t.status == 'IN_PROGRESS' ? 'badge-inprogress' :
+                                              t.status == 'SUSPENDED' ? 'badge-suspended' : 'badge-todo'}"
+                              th:text="${t.status}"></span>
+                </td>
+                <td th:text="${#temporals.format(t.startDate, 'dd/MM/yyyy')}"></td>
+                <td th:text="${t.estimatedHours}"></td>
+                <td th:text="${t.completionDate != null ? #temporals.format(t.completionDate, 'dd/MM/yyyy') : '-'}"></td>
+                <td>
+                    <a th:href="@{/admin/tests/edit/{id}(id=${t.id})}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a th:href="@{/admin/tests/delete/{id}(id=${t.id})}" class="btn btn-sm btn-danger delete-btn">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<!-- Scripts additionnels -->
+<script th:src="@{/js/admin.js}"></script>
+<script th:src="@{/js/chatbot.js}"></script>
 </body>
 </html>
