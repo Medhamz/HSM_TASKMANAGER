@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head}"><title>Test Form</title></head>
+<body th:replace="~{layout :: body}">
+<div th:fragment="content">
+    <h2 th:text="${testClass.id} ? 'Edit Test Class' : 'New Test Class'">Form</h2>
+    <form th:action="@{/admin/tests/save}" th:object="${testClass}" method="post">
+        <input type="hidden" th:field="*{id}">
+        <div class="mb-3">
+            <label class="form-label">Test Name</label>
+            <input type="text" th:field="*{name}" class="form-control" required>
+            <div class="text-danger" th:errors="*{name}">Error</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Project</label>
+            <select th:field="*{project}" class="form-control" required>
+                <option th:each="p : ${projects}" th:value="${p}" th:text="${p.name}">Project</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Type</label>
+            <select th:field="*{type}" class="form-control" required>
+                <option th:each="t : ${types}" th:value="${t}" th:text="${t}">Type</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select th:field="*{status}" class="form-control" required>
+                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}">Status</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Start Date</label>
+            <input type="date" th:field="*{startDate}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Estimated Hours</label>
+            <input type="number" th:field="*{estimatedHours}" class="form-control" required min="1">
+            <div class="text-danger" th:errors="*{estimatedHours}">Error</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Completion Date</label>
+            <input type="date" th:field="*{completionDate}" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Actual Hours Spent</label>
+            <input type="number" th:field="*{actualHours}" class="form-control" min="0">
+            <div class="text-danger" th:errors="*{actualHours}">Error</div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="/admin/tests" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+</body>
+</html>

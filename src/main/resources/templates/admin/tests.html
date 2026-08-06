@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head}"><title>Test Classes</title></head>
+<body th:replace="~{layout :: body}">
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Test Classes</h2>
+        <a href="/admin/tests/new" class="btn btn-primary">+ New Test</a>
+    </div>
+    <table class="table table-striped mt-3">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Project</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Start</th>
+            <th>Est. Hours</th>
+            <th>Completion</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="t : ${tests}">
+            <td th:text="${t.name}">Name</td>
+            <td th:text="${t.project.name}">Project</td>
+            <td th:text="${t.type}">Type</td>
+            <td><span class="badge" th:classappend="${t.status == 'COMPLETED' ? 'bg-success' : t.status == 'IN_PROGRESS' ? 'bg-warning' : t.status == 'SUSPENDED' ? 'bg-danger' : 'bg-secondary'}" th:text="${t.status}">Status</span></td>
+            <td th:text="${t.startDate}">Start</td>
+            <td th:text="${t.estimatedHours}">Hrs</td>
+            <td th:text="${t.completionDate}">Completion</td>
+            <td>
+                <a th:href="@{/admin/tests/edit/{id}(id=${t.id})}" class="btn btn-sm btn-warning">Edit</a>
+                <a th:href="@{/admin/tests/delete/{id}(id=${t.id})}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this test?')">Delete</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
