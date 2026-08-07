@@ -52,19 +52,19 @@
     <div th:replace="~{::content}">Content</div>
 </div>
 
-<!-- ============ CHATBOT ============ -->
-<!-- Bouton du chatbot -->
+<!-- ===================================================== -->
+<!-- CHATBOT : présent sur toutes les pages                -->
+<!-- ===================================================== -->
 <button id="chatbotButton" class="btn btn-primary rounded-circle">
     <i class="fas fa-robot"></i>
 </button>
 
-<!-- Fenêtre du chatbot -->
 <div id="chatbot">
     <div id="chatbot-header">
         <span><i class="fas fa-robot me-2"></i>Task Assistant</span>
         <span class="close-btn" id="chatbotClose">&times;</span>
     </div>
-    <div id="chatbot-body" style="display:flex;flex-direction:column;">
+    <div id="chatbot-body">
         <div id="chatMessages"></div>
         <div class="input-group">
             <input type="text" id="chatInput" class="form-control" placeholder="Ask something...">
@@ -77,15 +77,13 @@
 <script th:src="@{/js/admin.js}"></script>
 <script th:src="@{/js/chatbot.js}"></script>
 
-<!-- Script du thème (basculer dark/light) -->
+<!-- Script thème -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Restaurer le thème
         const saved = localStorage.getItem('theme');
         if (saved) {
             document.documentElement.setAttribute('data-theme', saved);
         }
-        // Toggle
         const btn = document.getElementById('themeToggle');
         if (btn) {
             btn.addEventListener('click', function() {
@@ -93,14 +91,12 @@
                 const next = current === 'dark' ? 'light' : 'dark';
                 document.documentElement.setAttribute('data-theme', next);
                 localStorage.setItem('theme', next);
-                // Changer l'icône
                 const icon = this.querySelector('i');
                 if (icon) {
                     icon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
                 }
             });
         }
-        // Initialiser l'icône du bouton thème
         const themeBtn = document.getElementById('themeToggle');
         if (themeBtn) {
             const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
