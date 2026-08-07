@@ -141,21 +141,21 @@
                             <tbody>
                             <tr th:each="test : ${entry.value}">
                                 <td><strong th:text="${test.name}">Name</strong></td>
-                                <td th:text="${test.project.name}">Project</td>
+                                <td th:text="${test.project != null ? test.project.name : '-'}">Project</td>
                                 <td><span class="badge bg-secondary" th:text="${test.type}">Type</span></td>
                                 <td>
                                     <span class="badge-status"
-                                          th:classappend="${test.status.name() == 'COMPLETED' ? 'badge-completed' :
-                                                          test.status.name() == 'IN_PROGRESS' ? 'badge-inprogress' :
-                                                          test.status.name() == 'SUSPENDED' ? 'badge-suspended' : 'badge-todo'}"
+                                          th:classappend="${test.status != null && test.status.name() == 'COMPLETED' ? 'badge-completed' :
+                                                          test.status != null && test.status.name() == 'IN_PROGRESS' ? 'badge-inprogress' :
+                                                          test.status != null && test.status.name() == 'SUSPENDED' ? 'badge-suspended' : 'badge-todo'}"
                                           th:text="${test.status}">Status</span>
                                 </td>
-                                <td th:text="${#temporals.format(test.startDate, 'dd/MM/yyyy')}">Start</td>
+                                <td th:text="${test.startDate != null ? #temporals.format(test.startDate, 'dd/MM/yyyy') : '-'}">Start</td>
                                 <td th:text="${test.estimatedHours}">Hrs</td>
                                 <td th:text="${test.completionDate != null ? #temporals.format(test.completionDate, 'dd/MM/yyyy') : '-'}">Completion</td>
                                 <td>
                                     <span th:if="${test.completionDate != null}">
-                                        <span th:with="daysLeft=${#temporals.daysBetween(#temporals.now(), test.completionDate)}">
+                                        <span th:with="daysLeft=${T(java.time.temporal.ChronoUnit).DAYS.between(today, test.completionDate)}">
                                             <span th:if="${daysLeft > 0}" class="badge bg-success" th:text="${daysLeft} + ' days'"></span>
                                             <span th:if="${daysLeft == 0}" class="badge bg-warning text-dark">Today</span>
                                             <span th:if="${daysLeft < 0}" class="badge bg-danger" th:text="${-daysLeft} + ' days overdue'"></span>

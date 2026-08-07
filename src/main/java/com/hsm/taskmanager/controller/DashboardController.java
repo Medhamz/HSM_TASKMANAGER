@@ -1,6 +1,5 @@
 package com.hsm.taskmanager.controller;
 
-import com.hsm.taskmanager.entity.Project;
 import com.hsm.taskmanager.entity.TestClass;
 import com.hsm.taskmanager.entity.enums.Status;
 import com.hsm.taskmanager.entity.enums.TestType;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,8 +41,20 @@ public class DashboardController {
         int selectedYear = (year != null) ? year : currentYear;
 
         List<TestClass> allTests = testClassService.findAll();
-        Map<Status, Long> statusStats = testClassService.countByStatus();
-        Map<TestType, Long> typeStats = testClassService.countByType();
+
+        // Récupération et conversion des clés Enum -> String pour éviter les erreurs de sérialisation JSON/Thymeleaf
+        Map<Status, Long> rawStatusStats = testClassService.countByStatus();
+        Map<TestType, Long> rawTypeStats = testClassService.countByType();
+
+        Map<String, Long> statusStats = new HashMap<>();
+        if (rawStatusStats != null) {
+            rawStatusStats.forEach((k, v) -> statusStats.put(k.name(), v));
+        }
+
+        Map<String, Long> typeStats = new HashMap<>();
+        if (rawTypeStats != null) {
+            rawTypeStats.forEach((k, v) -> typeStats.put(k.name(), v));
+        }
 
         // Organisation par semaines
         Map<String, List<TestClass>> testsByWeek = new LinkedHashMap<>();
@@ -67,23 +79,21 @@ public class DashboardController {
             LocalDate endOfWeek = startOfWeek.plusDays(6);
 
             List<TestClass> testsInWeek = allTests.stream()
-                    .filter(t -> {
-                        LocalDate start = t.getStartDate();
-                        return !start.isBefore(startOfWeek) && !start.isAfter(endOfWeek);
-                    })
-                    .sorted(Comparator.comparing(TestClass::getStatus)
-                            .thenComparing(TestClass::getStartDate))
+                    .filter(t -> t.getStartDate() != null &&
+                            !t.getStartDate().isBefore(startOfWeek) &&
+                            !t.getStartDate().isAfter(endOfWeek))
                     .collect(Collectors.toList());
 
             List<TestClass> sortedTests = testsInWeek.stream()
                     .sorted(Comparator.comparing((TestClass t) -> {
+                        if (t.getStatus() == null) return 3;
                         switch (t.getStatus()) {
                             case IN_PROGRESS: return 0;
                             case SUSPENDED: return 1;
                             case COMPLETED: return 2;
                             default: return 3;
                         }
-                    }).thenComparing(TestClass::getStartDate))
+                    }).thenComparing(TestClass::getStartDate, Comparator.nullsLast(Comparator.naturalOrder())))
                     .collect(Collectors.toList());
 
             testsByWeek.put(weekKey, sortedTests);
@@ -96,6 +106,7 @@ public class DashboardController {
         model.addAttribute("totalTests", allTests.size());
         model.addAttribute("statusStats", statusStats);
         model.addAttribute("typeStats", typeStats);
+        model.addAttribute("today", today);
 
         return "dashboard";
     }
