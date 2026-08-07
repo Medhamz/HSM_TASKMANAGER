@@ -1,11 +1,136 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{layout :: head}">
-    <title>Dashboard</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSM Task Manager - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Style CSS principal -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Styles de secours pour le chatbot */
+        #chatbot {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 340px;
+            background: var(--card-bg, #fff);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 999;
+            border: 1px solid rgba(108,99,255,0.2);
+            overflow: hidden;
+        }
+        #chatbot-header {
+            background: linear-gradient(135deg, #6c63ff, #00d2ff);
+            color: #fff;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #chatbot-header .close-btn { cursor: pointer; font-size: 1.5rem; }
+        #chatMessages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 200px;
+            max-height: 300px;
+        }
+        #chatMessages .bot-msg {
+            background: #6c63ff;
+            color: #fff;
+            align-self: flex-start;
+            border-radius: 16px 16px 16px 0;
+            padding: 10px 16px;
+            max-width: 80%;
+        }
+        #chatMessages .user-msg {
+            background: #00d2ff;
+            color: #fff;
+            align-self: flex-end;
+            border-radius: 16px 16px 0 16px;
+            padding: 10px 16px;
+            max-width: 80%;
+        }
+        #chatInput {
+            border: none;
+            border-top: 1px solid #ddd;
+            padding: 14px 18px;
+            border-radius: 0 0 20px 20px;
+            background: var(--card-bg, #fff);
+            color: var(--text-color, #1a1a2e);
+            outline: none;
+        }
+        #chatbotButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6c63ff, #00d2ff);
+            color: #fff;
+            border: none;
+            font-size: 28px;
+            box-shadow: 0 0 30px rgba(108,99,255,0.4);
+            z-index: 1000;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        #chatbotButton:hover { transform: scale(1.1) rotate(10deg); }
+    </style>
 </head>
-<body th:replace="~{layout :: body}">
-<div th:fragment="content">
+<body>
+
+<!-- ====== NAVBAR ====== -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard"><i class="fas fa-tasks me-2"></i>HSM Task Manager</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link active" href="/dashboard"><i class="fas fa-chart-pie me-1"></i>Dashboard</a></li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" href="/admin/projects"><i class="fas fa-folder me-1"></i>Projects</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" href="/admin/tests"><i class="fas fa-flask me-1"></i>Test Classes</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <button class="btn btn-outline-light btn-sm me-2" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-link nav-link"
+                                style="display:inline; padding:0; border:none; background:none; color:rgba(255,255,255,0.55);">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ====== CONTENU PRINCIPAL ====== -->
+<div class="container mt-4">
     <!-- EN-TÊTE -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -14,11 +139,6 @@
                 <span>Dashboard</span>
             </h2>
             <p class="text-muted" style="margin:0;">Welcome back, <strong sec:authentication="name"></strong>!</p>
-        </div>
-        <div>
-            <button class="btn btn-outline-primary rounded-pill" id="themeToggle">
-                <i class="fas fa-moon me-1"></i> Theme
-            </button>
         </div>
     </div>
 
@@ -32,23 +152,23 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card" style="border-left-color: var(--success);">
-                <span class="icon"><i class="fas fa-check-circle" style="color:var(--success);"></i></span>
-                <div class="number" style="background:linear-gradient(135deg,var(--success),#27ae60);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${statusStats['COMPLETED'] ?: 0}">0</div>
+            <div class="stat-card" style="border-left-color: #2ecc71;">
+                <span class="icon"><i class="fas fa-check-circle" style="color:#2ecc71;"></i></span>
+                <div class="number" style="color:#2ecc71;" th:text="${statusStats['COMPLETED'] ?: 0}">0</div>
                 <div class="label">Completed</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card" style="border-left-color: var(--warning);">
-                <span class="icon"><i class="fas fa-spinner" style="color:var(--warning);"></i></span>
-                <div class="number" style="background:linear-gradient(135deg,var(--warning),#f39c12);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${statusStats['IN_PROGRESS'] ?: 0}">0</div>
+            <div class="stat-card" style="border-left-color: #f1c40f;">
+                <span class="icon"><i class="fas fa-spinner" style="color:#f1c40f;"></i></span>
+                <div class="number" style="color:#f1c40f;" th:text="${statusStats['IN_PROGRESS'] ?: 0}">0</div>
                 <div class="label">In Progress</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card" style="border-left-color: var(--danger);">
-                <span class="icon"><i class="fas fa-pause-circle" style="color:var(--danger);"></i></span>
-                <div class="number" style="background:linear-gradient(135deg,var(--danger),#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${statusStats['SUSPENDED'] ?: 0}">0</div>
+            <div class="stat-card" style="border-left-color: #e74c3c;">
+                <span class="icon"><i class="fas fa-pause-circle" style="color:#e74c3c;"></i></span>
+                <div class="number" style="color:#e74c3c;" th:text="${statusStats['SUSPENDED'] ?: 0}">0</div>
                 <div class="label">Suspended</div>
             </div>
         </div>
@@ -58,9 +178,7 @@
     <div class="row g-4 mb-4">
         <div class="col-md-6">
             <div class="chart-card">
-                <div class="card-header">
-                    <i class="fas fa-chart-pie"></i> Status Distribution
-                </div>
+                <div class="card-header"><i class="fas fa-chart-pie"></i> Status Distribution</div>
                 <div class="card-body">
                     <canvas id="statusChart" height="250"></canvas>
                 </div>
@@ -68,9 +186,7 @@
         </div>
         <div class="col-md-6">
             <div class="chart-card">
-                <div class="card-header">
-                    <i class="fas fa-chart-bar"></i> Test Type Distribution
-                </div>
+                <div class="card-header"><i class="fas fa-chart-bar"></i> Test Type Distribution</div>
                 <div class="card-body">
                     <canvas id="typeChart" height="250"></canvas>
                 </div>
@@ -83,7 +199,6 @@
         <h3 style="font-weight:600;display:flex;align-items:center;gap:12px;margin-bottom:24px;">
             <i class="fas fa-calendar-alt text-primary"></i> Weekly Progress
         </h3>
-
         <div th:each="entry : ${testsByWeek}">
             <div class="week-card">
                 <div class="week-header">
@@ -145,20 +260,69 @@
     </div>
 </div>
 
-<!-- SCRIPT GRAPHIQUES -->
+<!-- ====== CHATBOT (intégré directement) ====== -->
+<button id="chatbotButton"><i class="fas fa-robot"></i></button>
+<div id="chatbot">
+    <div id="chatbot-header">
+        <span><i class="fas fa-robot me-2"></i>Task Assistant</span>
+        <span class="close-btn" id="chatbotClose">&times;</span>
+    </div>
+    <div id="chatbot-body" style="display:flex;flex-direction:column;">
+        <div id="chatMessages"></div>
+        <input type="text" id="chatInput" class="form-control" placeholder="Ask something...">
+        <button id="chatSend" class="btn btn-primary" style="border-radius:0 0 20px 20px;width:100%;"><i class="fas fa-paper-plane"></i> Send</button>
+    </div>
+</div>
+
+<!-- ====== SCRIPTS ====== -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script th:inline="javascript">
     /*<![CDATA[*/
-    document.addEventListener('DOMContentLoaded', function() {
-        const statusData = /*[[${statusStats}]]*/ {};
-        const typeData = /*[[${typeStats}]]*/ {};
 
+    // ==================================================
+    // 1. DONNÉES POUR LES GRAPHIQUES
+    // ==================================================
+    const statusData = /*[[${statusStats}]]*/ {};
+    const typeData = /*[[${typeStats}]]*/ {};
+
+    // ==================================================
+    // 2. THÈME (clair/sombre)
+    // ==================================================
+    (function() {
+        const saved = localStorage.getItem('theme');
+        if (saved) document.documentElement.setAttribute('data-theme', saved);
+        const btn = document.getElementById('themeToggle');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                const current = document.documentElement.getAttribute('data-theme');
+                const next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+                const icon = this.querySelector('i');
+                if (icon) icon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            });
+        }
+        // Initialiser l'icône
+        const themeBtn = document.getElementById('themeToggle');
+        if (themeBtn) {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const icon = themeBtn.querySelector('i');
+            if (icon) icon.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+    })();
+
+    // ==================================================
+    // 3. GRAPHIQUES
+    // ==================================================
+    document.addEventListener('DOMContentLoaded', function() {
         console.log('📊 Status data:', statusData);
         console.log('📊 Type data:', typeData);
 
-        // Status Doughnut
-        const ctxStatus = document.getElementById('statusChart');
-        if (ctxStatus) {
-            new Chart(ctxStatus, {
+        // Doughnut (statuts)
+        const ctx1 = document.getElementById('statusChart');
+        if (ctx1) {
+            new Chart(ctx1, {
                 type: 'doughnut',
                 data: {
                     labels: Object.keys(statusData),
@@ -188,10 +352,10 @@
             });
         }
 
-        // Type Bar
-        const ctxType = document.getElementById('typeChart');
-        if (ctxType) {
-            new Chart(ctxType, {
+        // Barres (types)
+        const ctx2 = document.getElementById('typeChart');
+        if (ctx2) {
+            new Chart(ctx2, {
                 type: 'bar',
                 data: {
                     labels: Object.keys(typeData),
@@ -208,9 +372,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -229,6 +391,77 @@
             });
         }
     });
+
+    // ==================================================
+    // 4. CHATBOT
+    // ==================================================
+    (function() {
+        const chatbot = document.getElementById('chatbot');
+        const toggleBtn = document.getElementById('chatbotButton');
+        const closeBtn = document.getElementById('chatbotClose');
+        const sendBtn = document.getElementById('chatSend');
+        const input = document.getElementById('chatInput');
+        const messages = document.getElementById('chatMessages');
+
+        if (!chatbot || !toggleBtn || !closeBtn || !sendBtn || !input || !messages) {
+            console.error('❌ Chatbot elements missing');
+            return;
+        }
+
+        toggleBtn.addEventListener('click', function() {
+            const isOpen = chatbot.style.display === 'block';
+            chatbot.style.display = isOpen ? 'none' : 'block';
+            if (!isOpen) {
+                input.focus();
+                if (messages.children.length === 0) {
+                    appendMessage('bot-msg', "👋 Hi! I'm your task assistant. Ask me anything about your tasks.");
+                }
+            }
+        });
+
+        closeBtn.addEventListener('click', function() {
+            chatbot.style.display = 'none';
+        });
+
+        function appendMessage(cls, text) {
+            const div = document.createElement('div');
+            div.className = cls;
+            div.textContent = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+            appendMessage('user-msg', text);
+            input.value = '';
+            setTimeout(() => {
+                let response = "I'm here to help! You can ask about tasks, status, or deadlines.";
+                const lower = text.toLowerCase();
+                if (lower.includes('hello') || lower.includes('hi') || lower.includes('bonjour')) {
+                    response = "Hello! How can I assist you with your tasks today?";
+                } else if (lower.includes('status') || lower.includes('etat')) {
+                    response = "You can view task statuses in the dashboard. Currently, we have tasks in progress, completed, and suspended.";
+                } else if (lower.includes('deadline') || lower.includes('date')) {
+                    response = "Deadlines are displayed in the task list. You can sort by completion date.";
+                } else if (lower.includes('project') || lower.includes('projet')) {
+                    response = "Projects are listed in the Projects tab. Each project contains multiple test classes.";
+                } else if (lower.includes('help') || lower.includes('aide')) {
+                    response = "I can help with: tasks, projects, statuses, deadlines. Just ask!";
+                }
+                appendMessage('bot-msg', response);
+            }, 600);
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        console.log('✅ Chatbot initialized.');
+    })();
+
     /*]]>*/
 </script>
 </body>
