@@ -1,129 +1,155 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{layout :: head}">
-    <title>Dashboard</title>
-</head>
+<head th:replace="~{layout :: head}"><title>Dashboard</title></head>
 <body th:replace="~{layout :: body}">
 <div th:fragment="content">
-    <h2>Dashboard</h2>
-    <p>Welcome, <span sec:authentication="name"></span>!</p>
+    <!-- En-tête -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 style="font-weight:700;">
+                <i class="fas fa-chart-pie text-primary me-2"></i>Dashboard
+            </h2>
+            <p class="text-muted">Welcome back, <strong sec:authentication="name"></strong>!</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-primary" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </div>
 
-    <!-- Statistiques rapides -->
-    <div class="row mt-4">
+    <!-- Statistiques avec animations -->
+    <div class="row g-4 mb-4">
         <div class="col-md-3">
-            <div class="card text-white bg-primary mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Total Tests</h5>
-                    <p class="card-text display-6" th:text="${totalTests}">0</p>
-                </div>
+            <div class="stat-card">
+                <div class="number" th:text="${totalTests}">0</div>
+                <div class="label">Total Tests</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-success mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Completed</h5>
-                    <p class="card-text display-6" th:text="${statusStats['COMPLETED'] ?: 0}">0</p>
-                </div>
+            <div class="stat-card" style="border-left-color: #2ecc71;">
+                <div class="number" style="background: linear-gradient(135deg,#2ecc71,#27ae60);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${statusStats['COMPLETED'] ?: 0}">0</div>
+                <div class="label">Completed</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-warning mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">In Progress</h5>
-                    <p class="card-text display-6" th:text="${statusStats['IN_PROGRESS'] ?: 0}">0</p>
-                </div>
+            <div class="stat-card" style="border-left-color: #f1c40f;">
+                <div class="number" style="background: linear-gradient(135deg,#f1c40f,#f39c12);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${statusStats['IN_PROGRESS'] ?: 0}">0</div>
+                <div class="label">In Progress</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-danger mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Suspended</h5>
-                    <p class="card-text display-6" th:text="${statusStats['SUSPENDED'] ?: 0}">0</p>
-                </div>
+            <div class="stat-card" style="border-left-color: #e74c3c;">
+                <div class="number" style="background: linear-gradient(135deg,#e74c3c,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${statusStats['SUSPENDED'] ?: 0}">0</div>
+                <div class="label">Suspended</div>
             </div>
         </div>
     </div>
 
     <!-- Graphiques -->
-    <div class="row mt-4">
+    <div class="row g-4 mb-4">
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">Status Distribution</div>
+            <div class="card card-glow">
+                <div class="card-header bg-transparent"><i class="fas fa-chart-pie me-2"></i>Status Distribution</div>
                 <div class="card-body">
-                    <canvas id="statusChart" width="400" height="300"></canvas>
+                    <canvas id="statusChart" width="400" height="280"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">Test Type Distribution</div>
+            <div class="card card-glow">
+                <div class="card-header bg-transparent"><i class="fas fa-chart-bar me-2"></i>Test Type Distribution</div>
                 <div class="card-body">
-                    <canvas id="typeChart" width="400" height="300"></canvas>
+                    <canvas id="typeChart" width="400" height="280"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Vue par semaines -->
-    <div class="mt-5">
-        <h3>Weekly View</h3>
+    <!-- Semaines (affichage amélioré) -->
+    <div class="mt-4">
+        <h3><i class="fas fa-calendar-alt me-2 text-primary"></i>Weekly Progress</h3>
         <div th:each="entry : ${testsByWeek}">
-            <div class="card mt-3">
-                <div class="card-header">
-                    <strong>Week: <span th:text="${entry.key}">2026-W32</span></strong>
-                    <span class="badge bg-secondary float-end" th:text="${entry.value.size()} + ' tests'"></span>
+            <div class="week-card">
+                <div class="week-header">
+                    <strong><i class="far fa-calendar-alt me-2"></i>Week <span th:text="${entry.key}">2026-W32</span></strong>
+                    <span class="badge" th:text="${entry.value.size()} + ' test(s)'"></span>
                 </div>
-                <div class="card-body">
-                    <table class="table table-sm table-striped">
-                        <thead>
-                        <tr>
-                            <th>Test Class</th>
-                            <th>Project</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>Start Date</th>
-                            <th>Est. Hours</th>
-                            <th>Completion Date</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="test : ${entry.value}">
-                            <td th:text="${test.name}">Name</td>
-                            <td th:text="${test.project.name}">Project</td>
-                            <td th:text="${test.type}">Type</td>
-                            <td><span class="badge" th:classappend="${test.status == 'COMPLETED' ? 'bg-success' : test.status == 'IN_PROGRESS' ? 'bg-warning' : test.status == 'SUSPENDED' ? 'bg-danger' : 'bg-secondary'}" th:text="${test.status}">Status</span></td>
-                            <td th:text="${#temporals.format(test.startDate, 'dd/MM/yyyy')}">Date</td>
-                            <td th:text="${test.estimatedHours}">Hours</td>
-                            <td th:text="${test.completionDate != null ? #temporals.format(test.completionDate, 'dd/MM/yyyy') : '-'}">Date</td>
-                        </tr>
-                        </tbody>
-                    </table>
+                <div class="week-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Test Class</th>
+                                <th>Project</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Start</th>
+                                <th>Est. Hours</th>
+                                <th>Completion</th>
+                                <th>Days Left</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="test : ${entry.value}">
+                                <td><strong th:text="${test.name}">Name</strong></td>
+                                <td th:text="${test.project.name}">Project</td>
+                                <td><span class="badge bg-secondary" th:text="${test.type}">Type</span></td>
+                                <td>
+                                    <span class="badge-status"
+                                          th:classappend="${test.status == 'COMPLETED' ? 'badge-completed' :
+                                                          test.status == 'IN_PROGRESS' ? 'badge-inprogress' :
+                                                          test.status == 'SUSPENDED' ? 'badge-suspended' : 'badge-todo'}"
+                                          th:text="${test.status}">Status</span>
+                                </td>
+                                <td th:text="${#temporals.format(test.startDate, 'dd/MM/yyyy')}">Start</td>
+                                <td th:text="${test.estimatedHours}">Hrs</td>
+                                <td th:text="${test.completionDate != null ? #temporals.format(test.completionDate, 'dd/MM/yyyy') : '-'}">Completion</td>
+                                <td>
+                                    <span th:if="${test.completionDate != null}">
+                                        <span th:with="daysLeft=${#temporals.daysBetween(#temporals.now(), test.completionDate)}">
+                                            <span th:if="${daysLeft > 0}" class="badge bg-success" th:text="${daysLeft} + ' days'"></span>
+                                            <span th:if="${daysLeft == 0}" class="badge bg-warning text-dark">Today</span>
+                                            <span th:if="${daysLeft < 0}" class="badge bg-danger" th:text="${-daysLeft} + ' days overdue'"></span>
+                                        </span>
+                                    </span>
+                                    <span th:if="${test.completionDate == null}" class="text-muted">—</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Scripts pour les graphiques (uniquement) -->
+<!-- Scripts des graphiques -->
 <script th:inline="javascript">
     /*<![CDATA[*/
     const statusData = /*[[${statusStats}]]*/ {};
     const typeData = /*[[${typeStats}]]*/ {};
 
-    // Graphique des statuts
     new Chart(document.getElementById('statusChart'), {
-        type: 'pie',
+        type: 'doughnut',
         data: {
             labels: Object.keys(statusData),
             datasets: [{
                 data: Object.values(statusData),
-                backgroundColor: ['#6c757d', '#ffc107', '#dc3545', '#28a745']
+                backgroundColor: ['#95a5a6', '#f1c40f', '#e74c3c', '#2ecc71'],
+                borderWidth: 0
             }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
         }
     });
 
-    // Graphique des types
     new Chart(document.getElementById('typeChart'), {
         type: 'bar',
         data: {
@@ -131,8 +157,18 @@
             datasets: [{
                 label: 'Number of tests',
                 data: Object.values(typeData),
-                backgroundColor: ['#0d6efd', '#d63384']
+                backgroundColor: ['rgba(108,99,255,0.7)', 'rgba(0,210,255,0.7)'],
+                borderRadius: 8
             }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
         }
     });
     /*]]>*/
