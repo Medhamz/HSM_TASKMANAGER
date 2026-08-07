@@ -108,7 +108,6 @@ public class AdminController {
             model.addAttribute("types", TestType.values());
             return "admin/test-form";
         }
-        // Récupérer le projet et l'associer à la classe de test
         Project project = projectService.findById(projectId);
         testClass.setProject(project);
         testClassService.save(testClass);
@@ -135,7 +134,7 @@ public class AdminController {
     }
 
     // ================================================================
-    //  EXPORT (CSV & PDF)
+    //  EXPORT
     // ================================================================
 
     @GetMapping("/tests/export/csv")

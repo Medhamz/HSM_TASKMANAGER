@@ -14,8 +14,10 @@
         <div class="mb-3">
             <label class="form-label">Project</label>
             <select name="projectId" id="projectId" class="form-control" required>
-                <option th:each="p : ${projects}" th:value="${p.id}" th:text="${p.name}"
-                        th:selected="${p.id == testClass.project.id}">Project</option>
+                <option th:each="p : ${projects}"
+                        th:value="${p.id}"
+                        th:text="${p.name}"
+                        th:selected="${testClass.project != null and p.id == testClass.project.id}">Project</option>
             </select>
         </div>
         <div class="mb-3">
