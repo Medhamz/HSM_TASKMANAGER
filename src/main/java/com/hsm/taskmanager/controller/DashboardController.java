@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.WeekFields;
 import java.util.*;
@@ -42,7 +43,6 @@ public class DashboardController {
 
         List<TestClass> allTests = testClassService.findAll();
 
-        // Conversions des statistiques pour JSON / Chart.js
         Map<Status, Long> rawStatusStats = testClassService.countByStatus();
         Map<TestType, Long> rawTypeStats = testClassService.countByType();
 
@@ -56,13 +56,12 @@ public class DashboardController {
             rawTypeStats.forEach((k, v) -> typeStats.put(k.name(), v));
         }
 
-        // Génération automatique des rapports par test
+        // Génération automatique des rapports sous forme de phrases complètes
         Map<Long, String> autoReports = new HashMap<>();
         for (TestClass test : allTests) {
-            autoReports.put(test.getId(), generateAutoReport(test, today));
+            autoReports.put(test.getId(), generateDetailedReportSentence(test, today));
         }
 
-        // Organisation par semaines
         Map<String, List<TestClass>> testsByWeek = new LinkedHashMap<>();
         Set<String> weeksToShow = new LinkedHashSet<>();
         for (int i = 3; i >= 0; i--) {
@@ -119,28 +118,53 @@ public class DashboardController {
     }
 
     /**
-     * Méthode d'analyse automatique du rapport quotidien pour un test
+     * Génère une phrase de rapport complète et naturelle pour le viewer.
      */
-    private String generateAutoReport(TestClass test, LocalDate today) {
+    private String generateDetailedReportSentence(TestClass test, LocalDate today) {
         if (test.getStatus() == Status.COMPLETED) {
-            return "Completed";
+            return "This test has been completed successfully.";
         }
         if (test.getStatus() == Status.SUSPENDED) {
-            return "Suspended";
+            return "This test is currently suspended.";
         }
-        if (test.getCompletionDate() != null) {
-            long daysLeft = ChronoUnit.DAYS.between(today, test.getCompletionDate());
-            if (daysLeft < 0) {
-                return "At Risk (" + Math.abs(daysLeft) + "d overdue)";
-            } else if (daysLeft == 0) {
-                return "Due Today";
+
+        LocalDate start = test.getStartDate();
+        LocalDate end = test.getCompletionDate();
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        if (start != null && end != null) {
+            boolean startedYesterday = start.equals(today.minusDays(1));
+            boolean finishesToday = end.equals(today);
+
+            if (startedYesterday && finishesToday) {
+                return "We started the current test yesterday and we're going to finish today.";
+            }
+
+            if (start.equals(today) && finishesToday) {
+                return "We started this test today and expect to finish it by the end of the day.";
+            }
+
+            long daysOverdue = ChronoUnit.DAYS.between(end, today);
+            if (daysOverdue > 0) {
+                return "We started this test on " + start.format(fmt) + " and it is currently overdue by " + daysOverdue + " day(s).";
+            }
+
+            long daysRemaining = ChronoUnit.DAYS.between(today, end);
+            if (start.isBefore(today) || start.equals(today)) {
+                return "We started this test on " + start.format(fmt) + " and we plan to finish on " + end.format(fmt) + " (" + daysRemaining + " day(s) remaining).";
             } else {
-                return "On Track (" + daysLeft + "d left)";
+                return "This test is scheduled to start on " + start.format(fmt) + " and complete by " + end.format(fmt) + ".";
             }
         }
-        if (test.getStatus() == Status.IN_PROGRESS) {
-            return "In Progress";
+
+        if (start != null && start.isAfter(today)) {
+            return "This test is scheduled to start on " + start.format(fmt) + ".";
         }
-        return "Pending";
+
+        if (test.getStatus() == Status.IN_PROGRESS) {
+            return "This test is currently in progress.";
+        }
+
+        return "Test pending start.";
     }
 }
