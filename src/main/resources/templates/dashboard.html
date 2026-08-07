@@ -7,41 +7,46 @@
     <!-- En-tête -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 style="font-weight:700;">
-                <i class="fas fa-chart-pie text-primary me-2"></i>Dashboard
+            <h2 style="font-weight:700;display:flex;align-items:center;gap:12px;">
+                <i class="fas fa-chart-pie text-primary" style="font-size:2rem;"></i>
+                <span>Dashboard</span>
             </h2>
-            <p class="text-muted">Welcome back, <strong sec:authentication="name"></strong>!</p>
+            <p class="text-muted" style="margin:0;">Welcome back, <strong sec:authentication="name"></strong>!</p>
         </div>
         <div>
-            <button class="btn btn-outline-primary" id="themeToggle">
-                <i class="fas fa-moon"></i>
+            <button class="btn btn-outline-primary rounded-pill" id="themeToggle">
+                <i class="fas fa-moon me-1"></i> Theme
             </button>
         </div>
     </div>
 
-    <!-- Statistiques avec animations -->
+    <!-- Cartes statistiques améliorées -->
     <div class="row g-4 mb-4">
-        <div class="col-md-3">
+        <div class="col-md-3 animate-in">
             <div class="stat-card">
+                <div class="icon"><i class="fas fa-tasks"></i></div>
                 <div class="number" th:text="${totalTests}">0</div>
                 <div class="label">Total Tests</div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 animate-in">
             <div class="stat-card" style="border-left-color: #2ecc71;">
-                <div class="number" style="background: linear-gradient(135deg,#2ecc71,#27ae60);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${statusStats['COMPLETED'] ?: 0}">0</div>
+                <div class="icon"><i class="fas fa-check-circle" style="background:linear-gradient(135deg,#2ecc71,#27ae60);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i></div>
+                <div class="number" style="color:#2ecc71;" th:text="${statusStats['COMPLETED'] ?: 0}">0</div>
                 <div class="label">Completed</div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 animate-in">
             <div class="stat-card" style="border-left-color: #f1c40f;">
-                <div class="number" style="background: linear-gradient(135deg,#f1c40f,#f39c12);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${statusStats['IN_PROGRESS'] ?: 0}">0</div>
+                <div class="icon"><i class="fas fa-spinner" style="background:linear-gradient(135deg,#f1c40f,#f39c12);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i></div>
+                <div class="number" style="color:#f1c40f;" th:text="${statusStats['IN_PROGRESS'] ?: 0}">0</div>
                 <div class="label">In Progress</div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 animate-in">
             <div class="stat-card" style="border-left-color: #e74c3c;">
-                <div class="number" style="background: linear-gradient(135deg,#e74c3c,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${statusStats['SUSPENDED'] ?: 0}">0</div>
+                <div class="icon"><i class="fas fa-pause-circle" style="background:linear-gradient(135deg,#e74c3c,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i></div>
+                <div class="number" style="color:#e74c3c;" th:text="${statusStats['SUSPENDED'] ?: 0}">0</div>
                 <div class="label">Suspended</div>
             </div>
         </div>
@@ -50,26 +55,32 @@
     <!-- Graphiques -->
     <div class="row g-4 mb-4">
         <div class="col-md-6">
-            <div class="card card-glow">
-                <div class="card-header bg-transparent"><i class="fas fa-chart-pie me-2"></i>Status Distribution</div>
+            <div class="chart-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie text-primary"></i> Status Distribution
+                </div>
                 <div class="card-body">
-                    <canvas id="statusChart" width="400" height="280"></canvas>
+                    <canvas id="statusChart" height="250"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card card-glow">
-                <div class="card-header bg-transparent"><i class="fas fa-chart-bar me-2"></i>Test Type Distribution</div>
+            <div class="chart-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar text-primary"></i> Test Type Distribution
+                </div>
                 <div class="card-body">
-                    <canvas id="typeChart" width="400" height="280"></canvas>
+                    <canvas id="typeChart" height="250"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Semaines (affichage amélioré) -->
+    <!-- Semaines -->
     <div class="mt-4">
-        <h3><i class="fas fa-calendar-alt me-2 text-primary"></i>Weekly Progress</h3>
+        <h3 style="font-weight:600;display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+            <i class="fas fa-calendar-alt text-primary"></i> Weekly Progress
+        </h3>
         <div th:each="entry : ${testsByWeek}">
             <div class="week-card">
                 <div class="week-header">
@@ -126,48 +137,82 @@
     </div>
 </div>
 
-<!-- Scripts des graphiques -->
 <script th:inline="javascript">
     /*<![CDATA[*/
+    // Données des graphiques
     const statusData = /*[[${statusStats}]]*/ {};
     const typeData = /*[[${typeStats}]]*/ {};
 
-    new Chart(document.getElementById('statusChart'), {
+    // Vérifier que les données existent et ne sont pas vides
+    const statusLabels = Object.keys(statusData);
+    const statusValues = Object.values(statusData);
+    const typeLabels = Object.keys(typeData);
+    const typeValues = Object.values(typeData);
+
+    // Graphique en anneau (doughnut) pour les statuts
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
         type: 'doughnut',
         data: {
-            labels: Object.keys(statusData),
+            labels: statusLabels.length ? statusLabels : ['No Data'],
             datasets: [{
-                data: Object.values(statusData),
+                data: statusValues.length ? statusValues : [1],
                 backgroundColor: ['#95a5a6', '#f1c40f', '#e74c3c', '#2ecc71'],
-                borderWidth: 0
+                borderWidth: 0,
+                hoverOffset: 8
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom' }
-            }
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#333',
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        padding: 20
+                    }
+                }
+            },
+            cutout: '60%'
         }
     });
 
-    new Chart(document.getElementById('typeChart'), {
+    // Graphique à barres pour les types
+    const typeCtx = document.getElementById('typeChart').getContext('2d');
+    new Chart(typeCtx, {
         type: 'bar',
         data: {
-            labels: Object.keys(typeData),
+            labels: typeLabels.length ? typeLabels : ['No Data'],
             datasets: [{
                 label: 'Number of tests',
-                data: Object.values(typeData),
-                backgroundColor: ['rgba(108,99,255,0.7)', 'rgba(0,210,255,0.7)'],
-                borderRadius: 8
+                data: typeValues.length ? typeValues : [1],
+                backgroundColor: [
+                    'rgba(108,99,255,0.7)',
+                    'rgba(0,210,255,0.7)'
+                ],
+                borderColor: [
+                    'rgba(108,99,255,1)',
+                    'rgba(0,210,255,1)'
+                ],
+                borderWidth: 2,
+                borderRadius: 8,
+                barPercentage: 0.6
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: { display: false }
             },
             scales: {
-                y: { beginAtZero: true }
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
             }
         }
     });
