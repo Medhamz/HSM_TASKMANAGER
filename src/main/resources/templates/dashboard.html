@@ -11,24 +11,38 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* Modern Table & Card Styling */
+        /* ===== STYLES DES CARTES & TABLEAUX ===== */
         .week-card {
             background: #ffffff;
-            border: none;
+            border: 1px solid #e9ecef;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
             margin-bottom: 2rem;
             overflow: hidden;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
+        .week-card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Titre de la Semaine (Fix pour la visibilité du texte) */
         .week-header {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: #f8f9fa;
             padding: 1rem 1.5rem;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid #e9ecef;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .week-header-title {
+            color: #1e293b !important; /* Couleur sombre bien visible */
+            font-weight: 700;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .custom-dashboard-table {
@@ -39,22 +53,22 @@
 
         .custom-dashboard-table th {
             background-color: #f8f9fa;
-            color: #495057;
+            color: #64748b;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 1rem 1.2rem;
-            border-bottom: 2px solid #e9ecef;
+            border-bottom: 2px solid #e2e8f0;
             white-space: nowrap;
         }
 
         .custom-dashboard-table td {
             padding: 1.1rem 1.2rem;
             vertical-align: middle;
-            border-bottom: 1px solid #f1f3f5;
+            border-bottom: 1px solid #f1f5f9;
             font-size: 0.92rem;
-            color: #212529;
+            color: #334155;
         }
 
         .custom-dashboard-table tbody tr:last-child td {
@@ -66,52 +80,61 @@
         }
 
         .custom-dashboard-table tbody tr:hover {
-            background-color: rgba(108, 99, 255, 0.03) !important;
+            background-color: #f8fafc !important;
         }
 
-        /* Report Box Styling */
+        /* Styling de la zone de rapport long */
         .report-cell {
             min-width: 340px;
             max-width: 420px;
         }
 
         .report-box {
-            background-color: #f8f9fa;
-            border-left: 4px solid #6c63ff;
-            padding: 0.6rem 0.9rem;
+            background-color: #f8fafc;
+            border-left: 4px solid #6366f1;
+            padding: 0.65rem 0.95rem;
             border-radius: 6px;
             font-size: 0.88rem;
-            line-height: 1.4;
-            color: #343a40;
+            line-height: 1.45;
+            color: #334155;
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
         }
 
+        /* ===== MODE SOMBRE ===== */
         [data-theme="dark"] .week-card {
-            background: #2b3035;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
         [data-theme="dark"] .week-header {
-            background: #212529;
-            border-bottom: 1px solid #373b3e;
-            color: #f8f9fa;
+            background: #0f172a;
+            border-bottom-color: #334155;
+        }
+
+        [data-theme="dark"] .week-header-title {
+            color: #f8fafc !important; /* Texte clair en dark mode */
         }
 
         [data-theme="dark"] .custom-dashboard-table th {
-            background-color: #212529;
-            color: #adb5bd;
-            border-bottom-color: #373b3e;
+            background-color: #0f172a;
+            color: #94a3b8;
+            border-bottom-color: #334155;
         }
 
         [data-theme="dark"] .custom-dashboard-table td {
-            border-bottom-color: #373b3e;
-            color: #e9ecef;
+            border-bottom-color: #334155;
+            color: #cbd5e1;
+        }
+
+        [data-theme="dark"] .custom-dashboard-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.03) !important;
         }
 
         [data-theme="dark"] .report-box {
-            background-color: #212529;
-            color: #e9ecef;
-            border-left-color: #6c63ff;
+            background-color: #0f172a;
+            color: #cbd5e1;
+            border-left-color: #818cf8;
         }
     </style>
 </head>
@@ -225,8 +248,11 @@
         <div th:each="entry : ${testsByWeek}">
             <div class="week-card">
                 <div class="week-header">
-                    <strong><i class="far fa-calendar-alt me-2 text-primary"></i>Week <span th:text="${entry.key}">2026-W32</span></strong>
-                    <span class="badge bg-primary rounded-pill px-3 py-2" th:text="${entry.value.size()} + ' test(s)'"></span>
+                    <div class="week-header-title">
+                        <i class="far fa-calendar-alt text-primary"></i>
+                        <span>Week <span th:text="${entry.key}">2026-W32</span></span>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-semibold" th:text="${entry.value.size()} + ' test(s)'"></span>
                 </div>
                 <div class="week-body p-0">
                     <div class="table-responsive">
@@ -246,9 +272,9 @@
                             </thead>
                             <tbody>
                             <tr th:each="test : ${entry.value}">
-                                <td><strong class="text-primary-emphasis" th:text="${test.name}">Name</strong></td>
+                                <td><strong class="text-primary-emphasis fw-bold" th:text="${test.name}">Name</strong></td>
                                 <td th:text="${test.project != null ? test.project.name : '-'}">Project</td>
-                                <td><span class="badge bg-light text-dark border" th:text="${test.type}">Type</span></td>
+                                <td><span class="badge bg-light text-secondary border" th:text="${test.type}">Type</span></td>
                                 <td>
                                     <span class="badge-status"
                                           th:classappend="${test.status != null && test.status.name() == 'COMPLETED' ? 'badge-completed' :
@@ -269,7 +295,6 @@
                                     </span>
                                     <span th:if="${test.completionDate == null}" class="text-muted">—</span>
                                 </td>
-                                <!-- Bloc de rapport automatique modernisé -->
                                 <td class="report-cell">
                                     <div class="report-box">
                                         <i class="fas fa-info-circle text-primary me-1"></i>
@@ -315,7 +340,6 @@
     const statusData = /*[[${statusStats}]]*/ {};
     const typeData = /*[[${typeStats}]]*/ {};
 
-    // Gestion du Thème
     document.addEventListener('DOMContentLoaded', function() {
         const saved = localStorage.getItem('theme');
         if (saved) document.documentElement.setAttribute('data-theme', saved);
@@ -336,7 +360,6 @@
             });
         }
 
-        // Configuration des Graphiques Chart.js
         const ctx1 = document.getElementById('statusChart');
         if (ctx1 && statusData && Object.keys(statusData).length > 0) {
             new Chart(ctx1, {
