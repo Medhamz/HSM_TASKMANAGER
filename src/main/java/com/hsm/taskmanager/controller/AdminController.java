@@ -34,7 +34,9 @@ public class AdminController {
     @Autowired
     private ExportService exportService;
 
-    // --- GESTION DES PROJETS ---
+    // ================================================================
+    //  GESTION DES PROJETS
+    // ================================================================
 
     @GetMapping("/projects")
     public String listProjects(Model model) {
@@ -49,12 +51,14 @@ public class AdminController {
     }
 
     @PostMapping("/projects/save")
-    public String saveProject(@Valid @ModelAttribute("project") Project project, BindingResult result, RedirectAttributes redirectAttributes) {
+    public String saveProject(@Valid @ModelAttribute("project") Project project,
+                              BindingResult result,
+                              RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "admin/project-form";
         }
         projectService.save(project);
-        redirectAttributes.addFlashAttribute("success", "Project saved!");
+        redirectAttributes.addFlashAttribute("success", "Project saved successfully!");
         return "redirect:/admin/projects";
     }
 
@@ -65,13 +69,16 @@ public class AdminController {
     }
 
     @GetMapping("/projects/delete/{id}")
-    public String deleteProject(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String deleteProject(@PathVariable Long id,
+                                RedirectAttributes redirectAttributes) {
         projectService.delete(id);
-        redirectAttributes.addFlashAttribute("success", "Project deleted!");
+        redirectAttributes.addFlashAttribute("success", "Project deleted successfully!");
         return "redirect:/admin/projects";
     }
 
-    // --- GESTION DES TESTS ---
+    // ================================================================
+    //  GESTION DES CLASSES DE TEST
+    // ================================================================
 
     @GetMapping("/tests")
     public String listTests(Model model) {
@@ -101,11 +108,11 @@ public class AdminController {
             model.addAttribute("types", TestType.values());
             return "admin/test-form";
         }
-        // Récupérer le projet et l'associer
+        // Récupérer le projet et l'associer à la classe de test
         Project project = projectService.findById(projectId);
         testClass.setProject(project);
         testClassService.save(testClass);
-        redirectAttributes.addFlashAttribute("success", "Test class saved!");
+        redirectAttributes.addFlashAttribute("success", "Test class saved successfully!");
         return "redirect:/admin/tests";
     }
 
@@ -120,22 +127,27 @@ public class AdminController {
     }
 
     @GetMapping("/tests/delete/{id}")
-    public String deleteTest(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String deleteTest(@PathVariable Long id,
+                             RedirectAttributes redirectAttributes) {
         testClassService.delete(id);
-        redirectAttributes.addFlashAttribute("success", "Test class deleted!");
+        redirectAttributes.addFlashAttribute("success", "Test class deleted successfully!");
         return "redirect:/admin/tests";
     }
 
-    // --- EXPORT ---
+    // ================================================================
+    //  EXPORT (CSV & PDF)
+    // ================================================================
 
     @GetMapping("/tests/export/csv")
     public ResponseEntity<byte[]> exportCsv() throws IOException {
         List<TestClass> tests = testClassService.findAll();
         byte[] csvData = exportService.exportCsv(tests);
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("text/csv"));
         headers.setContentDispositionFormData("attachment", "test_classes_export.csv");
         headers.setContentLength(csvData.length);
+
         return ResponseEntity.ok().headers(headers).body(csvData);
     }
 
@@ -143,10 +155,12 @@ public class AdminController {
     public ResponseEntity<byte[]> exportPdf() throws IOException {
         List<TestClass> tests = testClassService.findAll();
         byte[] pdfData = exportService.exportPdf(tests);
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDispositionFormData("attachment", "test_classes_export.pdf");
         headers.setContentLength(pdfData.length);
+
         return ResponseEntity.ok().headers(headers).body(pdfData);
     }
 }

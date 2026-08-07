@@ -9,12 +9,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const input = document.getElementById('chatInput');
     const messages = document.getElementById('chatMessages');
 
+    // Vérifier que tous les éléments existent
+    if (!chatbot || !toggleBtn || !closeBtn || !sendBtn || !input || !messages) {
+        console.error('Chatbot elements missing');
+        return;
+    }
+
     // Afficher/masquer le chatbot
     toggleBtn.addEventListener('click', function() {
         const isOpen = chatbot.style.display === 'block';
         chatbot.style.display = isOpen ? 'none' : 'block';
-        if (!isOpen) input.focus();
+        if (!isOpen) {
+            input.focus();
+            // Envoyer un message de bienvenue si c'est la première ouverture
+            if (messages.children.length === 0) {
+                appendMessage('bot-msg', "👋 Hi! I'm your task assistant. Ask me anything about your tasks.");
+            }
+        }
     });
+
     closeBtn.addEventListener('click', function() {
         chatbot.style.display = 'none';
     });
@@ -29,12 +42,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Réponse automatique (simulée)
         setTimeout(() => {
             let response = "I'm here to help! You can ask about tasks, status, or deadlines.";
-            if (text.toLowerCase().includes('hello') || text.toLowerCase().includes('hi')) {
+            const lower = text.toLowerCase();
+            if (lower.includes('hello') || lower.includes('hi') || lower.includes('bonjour')) {
                 response = "Hello! How can I assist you with your tasks today?";
-            } else if (text.toLowerCase().includes('status')) {
+            } else if (lower.includes('status') || lower.includes('etat')) {
                 response = "You can view task statuses in the dashboard. Currently, we have tasks in progress, completed, and suspended.";
-            } else if (text.toLowerCase().includes('deadline')) {
+            } else if (lower.includes('deadline') || lower.includes('date')) {
                 response = "Deadlines are displayed in the task list. You can sort by completion date.";
+            } else if (lower.includes('project') || lower.includes('projet')) {
+                response = "Projects are listed in the Projects tab. Each project contains multiple test classes.";
             }
             appendMessage('bot-msg', response);
         }, 500);
@@ -52,9 +68,4 @@ document.addEventListener('DOMContentLoaded', function() {
     input.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') sendMessage();
     });
-
-    // Message de bienvenue
-    setTimeout(() => {
-        appendMessage('bot-msg', "👋 Hi! I'm your task assistant. Ask me anything about your tasks.");
-    }, 1000);
 });
