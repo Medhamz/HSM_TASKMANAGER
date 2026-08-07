@@ -41,14 +41,10 @@ public class DashboardController {
         int selectedYear = (year != null) ? year : currentYear;
 
         List<TestClass> allTests = testClassService.findAll();
+        Map<Status, Long> statusStats = testClassService.countByStatus();
+        Map<TestType, Long> typeStats = testClassService.countByType();
 
-        // Statistiques avec clés en String pour Thymeleaf
-        Map<String, Long> statusStats = testClassService.countByStatus().entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
-        Map<String, Long> typeStats = testClassService.countByType().entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
-
-        // Organisation par semaine
+        // Organisation par semaines
         Map<String, List<TestClass>> testsByWeek = new LinkedHashMap<>();
         Set<String> weeksToShow = new LinkedHashSet<>();
         for (int i = 3; i >= 0; i--) {
@@ -58,6 +54,7 @@ public class DashboardController {
             weeksToShow.add(y + "-W" + String.format("%02d", w));
         }
         weeksToShow.add(selectedYear + "-W" + String.format("%02d", selectedWeek));
+
         List<String> sortedWeeks = weeksToShow.stream().sorted().collect(Collectors.toList());
 
         for (String weekKey : sortedWeeks) {
