@@ -32,11 +32,9 @@ public class AdminController {
     private TestClassService testClassService;
 
     @Autowired
-    private ExportService exportService;  // Service d'export injecté
+    private ExportService exportService;
 
-    // ================================================================
-    //  GESTION DES PROJETS
-    // ================================================================
+    // --- GESTION DES PROJETS ---
 
     @GetMapping("/projects")
     public String listProjects(Model model) {
@@ -51,14 +49,12 @@ public class AdminController {
     }
 
     @PostMapping("/projects/save")
-    public String saveProject(@Valid @ModelAttribute("project") Project project,
-                              BindingResult result,
-                              RedirectAttributes redirectAttributes) {
+    public String saveProject(@Valid @ModelAttribute("project") Project project, BindingResult result, RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "admin/project-form";
         }
         projectService.save(project);
-        redirectAttributes.addFlashAttribute("success", "Project saved successfully!");
+        redirectAttributes.addFlashAttribute("success", "Project saved!");
         return "redirect:/admin/projects";
     }
 
@@ -69,16 +65,13 @@ public class AdminController {
     }
 
     @GetMapping("/projects/delete/{id}")
-    public String deleteProject(@PathVariable Long id,
-                                RedirectAttributes redirectAttributes) {
+    public String deleteProject(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         projectService.delete(id);
-        redirectAttributes.addFlashAttribute("success", "Project deleted successfully!");
+        redirectAttributes.addFlashAttribute("success", "Project deleted!");
         return "redirect:/admin/projects";
     }
 
-    // ================================================================
-    //  GESTION DES CLASSES DE TEST
-    // ================================================================
+    // --- GESTION DES TESTS ---
 
     @GetMapping("/tests")
     public String listTests(Model model) {
@@ -99,6 +92,7 @@ public class AdminController {
     @PostMapping("/tests/save")
     public String saveTest(@Valid @ModelAttribute("testClass") TestClass testClass,
                            BindingResult result,
+                           @RequestParam("projectId") Long projectId,
                            Model model,
                            RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
@@ -107,14 +101,18 @@ public class AdminController {
             model.addAttribute("types", TestType.values());
             return "admin/test-form";
         }
+        // Récupérer le projet et l'associer
+        Project project = projectService.findById(projectId);
+        testClass.setProject(project);
         testClassService.save(testClass);
-        redirectAttributes.addFlashAttribute("success", "Test class saved successfully!");
+        redirectAttributes.addFlashAttribute("success", "Test class saved!");
         return "redirect:/admin/tests";
     }
 
     @GetMapping("/tests/edit/{id}")
     public String editTest(@PathVariable Long id, Model model) {
-        model.addAttribute("testClass", testClassService.findById(id));
+        TestClass testClass = testClassService.findById(id);
+        model.addAttribute("testClass", testClass);
         model.addAttribute("projects", projectService.findAll());
         model.addAttribute("statuses", Status.values());
         model.addAttribute("types", TestType.values());
@@ -122,48 +120,33 @@ public class AdminController {
     }
 
     @GetMapping("/tests/delete/{id}")
-    public String deleteTest(@PathVariable Long id,
-                             RedirectAttributes redirectAttributes) {
+    public String deleteTest(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         testClassService.delete(id);
-        redirectAttributes.addFlashAttribute("success", "Test class deleted successfully!");
+        redirectAttributes.addFlashAttribute("success", "Test class deleted!");
         return "redirect:/admin/tests";
     }
 
-    // ================================================================
-    //  EXPORT (CSV & PDF) – Utilisation du service ExportService
-    // ================================================================
+    // --- EXPORT ---
 
-    /**
-     * Exporte toutes les classes de test au format CSV.
-     */
     @GetMapping("/tests/export/csv")
     public ResponseEntity<byte[]> exportCsv() throws IOException {
         List<TestClass> tests = testClassService.findAll();
         byte[] csvData = exportService.exportCsv(tests);
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("text/csv"));
         headers.setContentDispositionFormData("attachment", "test_classes_export.csv");
         headers.setContentLength(csvData.length);
-
         return ResponseEntity.ok().headers(headers).body(csvData);
     }
 
-    /**
-     * Exporte toutes les classes de test au format PDF.
-     * (Si votre ExportService ne gère pas encore le PDF, renvoyez une erreur 501.)
-     */
     @GetMapping("/tests/export/pdf")
     public ResponseEntity<byte[]> exportPdf() throws IOException {
         List<TestClass> tests = testClassService.findAll();
-        // Supposons que votre ExportService a une méthode exportPdf()
         byte[] pdfData = exportService.exportPdf(tests);
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDispositionFormData("attachment", "test_classes_export.pdf");
         headers.setContentLength(pdfData.length);
-
         return ResponseEntity.ok().headers(headers).body(pdfData);
     }
 }

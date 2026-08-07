@@ -3,7 +3,7 @@ package com.hsm.taskmanager.controller;
 import com.hsm.taskmanager.entity.Project;
 import com.hsm.taskmanager.entity.TestClass;
 import com.hsm.taskmanager.entity.enums.Status;
-import com.hsm.taskmanager.entity.enums.TestType;   // ← Import ajouté
+import com.hsm.taskmanager.entity.enums.TestType;
 import com.hsm.taskmanager.service.ProjectService;
 import com.hsm.taskmanager.service.TestClassService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,13 @@ public class DashboardController {
         // Récupérer tous les tests
         List<TestClass> allTests = testClassService.findAll();
         Map<Status, Long> statusStats = testClassService.countByStatus();
-        Map<TestType, Long> typeStats = testClassService.countByType();  // Maintenant reconnu
+        Map<TestType, Long> typeStats = testClassService.countByType();
+
+        // Convertir les clés en String pour Thymeleaf
+        Map<String, Long> statusStatsString = statusStats.entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
+        Map<String, Long> typeStatsString = typeStats.entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
 
         // Organiser les tests par semaine
         Map<String, List<TestClass>> testsByWeek = new LinkedHashMap<>();
@@ -75,8 +81,6 @@ public class DashboardController {
                         LocalDate start = t.getStartDate();
                         return !start.isBefore(startOfWeek) && !start.isAfter(endOfWeek);
                     })
-                    .sorted(Comparator.comparing(TestClass::getStatus)
-                            .thenComparing(TestClass::getStartDate))
                     .collect(Collectors.toList());
 
             // Trier : en cours d'abord, puis suspendu, puis terminé, puis à faire
@@ -102,8 +106,8 @@ public class DashboardController {
         model.addAttribute("selectedYear", selectedYear);
         model.addAttribute("projects", projects);
         model.addAttribute("totalTests", allTests.size());
-        model.addAttribute("statusStats", statusStats);
-        model.addAttribute("typeStats", typeStats);
+        model.addAttribute("statusStats", statusStatsString);
+        model.addAttribute("typeStats", typeStatsString);
 
         return "dashboard";
     }
