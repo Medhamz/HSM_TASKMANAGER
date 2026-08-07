@@ -1,5 +1,5 @@
 // ==================================================
-// CHATBOT.JS - Assistant virtuel
+// CHATBOT.JS - Assistant virtuel (version robuste)
 // ==================================================
 document.addEventListener('DOMContentLoaded', function() {
     const chatbot = document.getElementById('chatbot');
@@ -9,19 +9,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const input = document.getElementById('chatInput');
     const messages = document.getElementById('chatMessages');
 
-    // Vérifier que tous les éléments existent
+    // Vérification des éléments
     if (!chatbot || !toggleBtn || !closeBtn || !sendBtn || !input || !messages) {
-        console.error('Chatbot elements missing');
+        console.error('❌ Chatbot: certains éléments sont introuvables.');
         return;
     }
 
-    // Afficher/masquer le chatbot
+    // Ouvrir / Fermer le chatbot
     toggleBtn.addEventListener('click', function() {
         const isOpen = chatbot.style.display === 'block';
         chatbot.style.display = isOpen ? 'none' : 'block';
         if (!isOpen) {
             input.focus();
-            // Envoyer un message de bienvenue si c'est la première ouverture
+            // Message de bienvenue si vide
             if (messages.children.length === 0) {
                 appendMessage('bot-msg', "👋 Hi! I'm your task assistant. Ask me anything about your tasks.");
             }
@@ -32,14 +32,24 @@ document.addEventListener('DOMContentLoaded', function() {
         chatbot.style.display = 'none';
     });
 
+    // Ajouter un message
+    function appendMessage(cls, text) {
+        const div = document.createElement('div');
+        div.className = cls;
+        div.textContent = text;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
     // Envoyer un message
     function sendMessage() {
         const text = input.value.trim();
         if (!text) return;
-        // Message utilisateur
+
         appendMessage('user-msg', text);
         input.value = '';
-        // Réponse automatique (simulée)
+
+        // Simuler une réponse
         setTimeout(() => {
             let response = "I'm here to help! You can ask about tasks, status, or deadlines.";
             const lower = text.toLowerCase();
@@ -51,21 +61,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 response = "Deadlines are displayed in the task list. You can sort by completion date.";
             } else if (lower.includes('project') || lower.includes('projet')) {
                 response = "Projects are listed in the Projects tab. Each project contains multiple test classes.";
+            } else if (lower.includes('help') || lower.includes('aide')) {
+                response = "I can help with: tasks, projects, statuses, deadlines. Just ask!";
             }
             appendMessage('bot-msg', response);
-        }, 500);
-    }
-
-    function appendMessage(cls, text) {
-        const div = document.createElement('div');
-        div.className = cls;
-        div.textContent = text;
-        messages.appendChild(div);
-        messages.scrollTop = messages.scrollHeight;
+        }, 600);
     }
 
     sendBtn.addEventListener('click', sendMessage);
     input.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') sendMessage();
     });
+
+    console.log('✅ Chatbot initialisé avec succès.');
 });

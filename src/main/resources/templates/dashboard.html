@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{layout :: head}"><title>Dashboard</title></head>
+<head th:replace="~{layout :: head}">
+    <title>Dashboard</title>
+</head>
 <body th:replace="~{layout :: body}">
 <div th:fragment="content">
-    <!-- En-tête -->
+    <!-- ============ EN-TÊTE ============ -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 style="font-weight:700;display:flex;align-items:center;gap:12px;">
@@ -20,44 +22,44 @@
         </div>
     </div>
 
-    <!-- Cartes statistiques améliorées -->
+    <!-- ============ STATISTIQUES ============ -->
     <div class="row g-4 mb-4">
-        <div class="col-md-3 animate-in">
+        <div class="col-md-3">
             <div class="stat-card">
-                <div class="icon"><i class="fas fa-tasks"></i></div>
+                <span class="icon"><i class="fas fa-tasks"></i></span>
                 <div class="number" th:text="${totalTests}">0</div>
                 <div class="label">Total Tests</div>
             </div>
         </div>
-        <div class="col-md-3 animate-in">
-            <div class="stat-card" style="border-left-color: #2ecc71;">
-                <div class="icon"><i class="fas fa-check-circle" style="background:linear-gradient(135deg,#2ecc71,#27ae60);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i></div>
-                <div class="number" style="color:#2ecc71;" th:text="${statusStats['COMPLETED'] ?: 0}">0</div>
+        <div class="col-md-3">
+            <div class="stat-card" style="border-left-color: var(--success);">
+                <span class="icon"><i class="fas fa-check-circle" style="color:var(--success);"></i></span>
+                <div class="number" style="background:linear-gradient(135deg,var(--success),#27ae60);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${statusStats['COMPLETED'] ?: 0}">0</div>
                 <div class="label">Completed</div>
             </div>
         </div>
-        <div class="col-md-3 animate-in">
-            <div class="stat-card" style="border-left-color: #f1c40f;">
-                <div class="icon"><i class="fas fa-spinner" style="background:linear-gradient(135deg,#f1c40f,#f39c12);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i></div>
-                <div class="number" style="color:#f1c40f;" th:text="${statusStats['IN_PROGRESS'] ?: 0}">0</div>
+        <div class="col-md-3">
+            <div class="stat-card" style="border-left-color: var(--warning);">
+                <span class="icon"><i class="fas fa-spinner" style="color:var(--warning);"></i></span>
+                <div class="number" style="background:linear-gradient(135deg,var(--warning),#f39c12);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${statusStats['IN_PROGRESS'] ?: 0}">0</div>
                 <div class="label">In Progress</div>
             </div>
         </div>
-        <div class="col-md-3 animate-in">
-            <div class="stat-card" style="border-left-color: #e74c3c;">
-                <div class="icon"><i class="fas fa-pause-circle" style="background:linear-gradient(135deg,#e74c3c,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i></div>
-                <div class="number" style="color:#e74c3c;" th:text="${statusStats['SUSPENDED'] ?: 0}">0</div>
+        <div class="col-md-3">
+            <div class="stat-card" style="border-left-color: var(--danger);">
+                <span class="icon"><i class="fas fa-pause-circle" style="color:var(--danger);"></i></span>
+                <div class="number" style="background:linear-gradient(135deg,var(--danger),#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${statusStats['SUSPENDED'] ?: 0}">0</div>
                 <div class="label">Suspended</div>
             </div>
         </div>
     </div>
 
-    <!-- Graphiques -->
+    <!-- ============ GRAPHIQUES ============ -->
     <div class="row g-4 mb-4">
         <div class="col-md-6">
             <div class="chart-card">
                 <div class="card-header">
-                    <i class="fas fa-chart-pie text-primary"></i> Status Distribution
+                    <i class="fas fa-chart-pie"></i> Status Distribution
                 </div>
                 <div class="card-body">
                     <canvas id="statusChart" height="250"></canvas>
@@ -67,7 +69,7 @@
         <div class="col-md-6">
             <div class="chart-card">
                 <div class="card-header">
-                    <i class="fas fa-chart-bar text-primary"></i> Test Type Distribution
+                    <i class="fas fa-chart-bar"></i> Test Type Distribution
                 </div>
                 <div class="card-body">
                     <canvas id="typeChart" height="250"></canvas>
@@ -76,11 +78,13 @@
         </div>
     </div>
 
-    <!-- Semaines -->
+    <!-- ============ VUE PAR SEMAINES ============ -->
     <div class="mt-4">
         <h3 style="font-weight:600;display:flex;align-items:center;gap:12px;margin-bottom:24px;">
             <i class="fas fa-calendar-alt text-primary"></i> Weekly Progress
         </h3>
+
+        <!-- Boucle sur les semaines -->
         <div th:each="entry : ${testsByWeek}">
             <div class="week-card">
                 <div class="week-header">
@@ -103,6 +107,7 @@
                             </tr>
                             </thead>
                             <tbody>
+                            <!-- Si la semaine a des tests -->
                             <tr th:each="test : ${entry.value}">
                                 <td><strong th:text="${test.name}">Name</strong></td>
                                 <td th:text="${test.project.name}">Project</td>
@@ -128,6 +133,12 @@
                                     <span th:if="${test.completionDate == null}" class="text-muted">—</span>
                                 </td>
                             </tr>
+                            <!-- Si la semaine est vide -->
+                            <tr th:if="${entry.value.isEmpty()}">
+                                <td colspan="8" class="text-center text-muted py-3">
+                                    <i class="fas fa-inbox me-2"></i> No tests for this week
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -137,83 +148,87 @@
     </div>
 </div>
 
+<!-- ============ SCRIPTS POUR GRAPHIQUES ============ -->
 <script th:inline="javascript">
     /*<![CDATA[*/
-    // Données des graphiques
     const statusData = /*[[${statusStats}]]*/ {};
     const typeData = /*[[${typeStats}]]*/ {};
 
-    // Vérifier que les données existent et ne sont pas vides
-    const statusLabels = Object.keys(statusData);
-    const statusValues = Object.values(statusData);
-    const typeLabels = Object.keys(typeData);
-    const typeValues = Object.values(typeData);
+    document.addEventListener('DOMContentLoaded', function() {
+        // Graphique circulaire (Doughnut)
+        const ctx1 = document.getElementById('statusChart');
+        if (ctx1) {
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusData),
+                    datasets: [{
+                        data: Object.values(statusData),
+                        backgroundColor: ['#95a5a6', '#f1c40f', '#e74c3c', '#2ecc71'],
+                        borderWidth: 0,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#1a1a2e',
+                                padding: 16,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
 
-    // Graphique en anneau (doughnut) pour les statuts
-    const statusCtx = document.getElementById('statusChart').getContext('2d');
-    new Chart(statusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: statusLabels.length ? statusLabels : ['No Data'],
-            datasets: [{
-                data: statusValues.length ? statusValues : [1],
-                backgroundColor: ['#95a5a6', '#f1c40f', '#e74c3c', '#2ecc71'],
-                borderWidth: 0,
-                hoverOffset: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#333',
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        padding: 20
+        // Graphique à barres
+        const ctx2 = document.getElementById('typeChart');
+        if (ctx2) {
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(typeData),
+                    datasets: [{
+                        label: 'Number of tests',
+                        data: Object.values(typeData),
+                        backgroundColor: ['rgba(108,99,255,0.75)', 'rgba(0,210,255,0.75)'],
+                        borderColor: ['#6c63ff', '#00d2ff'],
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#1a1a2e'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#1a1a2e'
+                            }
+                        }
                     }
                 }
-            },
-            cutout: '60%'
-        }
-    });
-
-    // Graphique à barres pour les types
-    const typeCtx = document.getElementById('typeChart').getContext('2d');
-    new Chart(typeCtx, {
-        type: 'bar',
-        data: {
-            labels: typeLabels.length ? typeLabels : ['No Data'],
-            datasets: [{
-                label: 'Number of tests',
-                data: typeValues.length ? typeValues : [1],
-                backgroundColor: [
-                    'rgba(108,99,255,0.7)',
-                    'rgba(0,210,255,0.7)'
-                ],
-                borderColor: [
-                    'rgba(108,99,255,1)',
-                    'rgba(0,210,255,1)'
-                ],
-                borderWidth: 2,
-                borderRadius: 8,
-                barPercentage: 0.6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1 }
-                }
-            }
+            });
         }
     });
     /*]]>*/
