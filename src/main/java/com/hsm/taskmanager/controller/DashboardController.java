@@ -32,7 +32,6 @@ public class DashboardController {
     public String dashboard(Model model,
                             @RequestParam(required = false) Integer week,
                             @RequestParam(required = false) Integer year) {
-        // Semaine actuelle par défaut
         LocalDate today = LocalDate.now();
         WeekFields weekFields = WeekFields.ISO;
         int currentWeek = today.get(weekFields.weekOfWeekBasedYear());
@@ -41,21 +40,16 @@ public class DashboardController {
         int selectedWeek = (week != null) ? week : currentWeek;
         int selectedYear = (year != null) ? year : currentYear;
 
-        // Récupérer tous les tests
         List<TestClass> allTests = testClassService.findAll();
-        Map<Status, Long> statusStats = testClassService.countByStatus();
-        Map<TestType, Long> typeStats = testClassService.countByType();
 
-        // Convertir les clés en String pour Thymeleaf
-        Map<String, Long> statusStatsString = statusStats.entrySet().stream()
+        // Statistiques avec clés en String pour Thymeleaf
+        Map<String, Long> statusStats = testClassService.countByStatus().entrySet().stream()
                 .collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
-        Map<String, Long> typeStatsString = typeStats.entrySet().stream()
+        Map<String, Long> typeStats = testClassService.countByType().entrySet().stream()
                 .collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
 
-        // Organiser les tests par semaine
+        // Organisation par semaine
         Map<String, List<TestClass>> testsByWeek = new LinkedHashMap<>();
-
-        // Déterminer la plage de semaines (les 4 dernières + la semaine sélectionnée)
         Set<String> weeksToShow = new LinkedHashSet<>();
         for (int i = 3; i >= 0; i--) {
             LocalDate date = today.minusWeeks(i);
@@ -64,7 +58,6 @@ public class DashboardController {
             weeksToShow.add(y + "-W" + String.format("%02d", w));
         }
         weeksToShow.add(selectedYear + "-W" + String.format("%02d", selectedWeek));
-        // Trier par ordre chronologique
         List<String> sortedWeeks = weeksToShow.stream().sorted().collect(Collectors.toList());
 
         for (String weekKey : sortedWeeks) {
@@ -81,9 +74,10 @@ public class DashboardController {
                         LocalDate start = t.getStartDate();
                         return !start.isBefore(startOfWeek) && !start.isAfter(endOfWeek);
                     })
+                    .sorted(Comparator.comparing(TestClass::getStatus)
+                            .thenComparing(TestClass::getStartDate))
                     .collect(Collectors.toList());
 
-            // Trier : en cours d'abord, puis suspendu, puis terminé, puis à faire
             List<TestClass> sortedTests = testsInWeek.stream()
                     .sorted(Comparator.comparing((TestClass t) -> {
                         switch (t.getStatus()) {
@@ -98,16 +92,13 @@ public class DashboardController {
             testsByWeek.put(weekKey, sortedTests);
         }
 
-        // Projets pour le dropdown
-        List<Project> projects = projectService.findAll();
-
         model.addAttribute("testsByWeek", testsByWeek);
         model.addAttribute("selectedWeek", selectedWeek);
         model.addAttribute("selectedYear", selectedYear);
-        model.addAttribute("projects", projects);
+        model.addAttribute("projects", projectService.findAll());
         model.addAttribute("totalTests", allTests.size());
-        model.addAttribute("statusStats", statusStatsString);
-        model.addAttribute("typeStats", typeStatsString);
+        model.addAttribute("statusStats", statusStats);
+        model.addAttribute("typeStats", typeStats);
 
         return "dashboard";
     }
