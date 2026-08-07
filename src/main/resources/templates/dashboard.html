@@ -7,189 +7,13 @@
     <title>HSM Task Manager - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Pas de style.css, tout est intégré ci-dessous -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* ====== TOUS LES STYLES INTÉGRÉS ====== */
-        :root {
-            --bg-color: #f0f2f5;
-            --text-color: #1a1a2e;
-            --card-bg: #ffffff;
-            --navbar-bg: #1a1a2e;
-            --primary: #6c63ff;
-            --secondary: #00d2ff;
-            --success: #2ecc71;
-            --danger: #e74c3c;
-            --warning: #f1c40f;
-            --shadow: 0 15px 50px rgba(0,0,0,0.08);
-            --shadow-hover: 0 25px 70px rgba(108,99,255,0.15);
-            --radius: 20px;
-        }
-        [data-theme="dark"] {
-            --bg-color: #0a0a1a;
-            --text-color: #e8e8f0;
-            --card-bg: #15152a;
-            --navbar-bg: #0a0a1a;
-            --shadow: 0 15px 50px rgba(0,0,0,0.5);
-            --shadow-hover: 0 25px 70px rgba(108,99,255,0.2);
-        }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.4s, color 0.4s;
-            padding-top: 70px;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-        }
-        .stat-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 24px 20px 20px;
-            box-shadow: var(--shadow);
-            transition: all 0.3s ease;
-            border-left: 4px solid var(--primary);
-            position: relative;
-            overflow: hidden;
-        }
-        .stat-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-hover); }
-        .stat-card .icon { font-size: 1.8rem; margin-bottom: 8px; display: block; }
-        .stat-card .number { font-size: 2.8rem; font-weight: 700; line-height: 1.2; color: var(--primary); }
-        .stat-card .label { font-size: 0.85rem; color: var(--text-color); opacity: 0.6; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
-        .chart-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        .chart-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-4px); }
-        .chart-card .card-header {
-            background: transparent;
-            padding: 18px 24px;
-            border-bottom: 1px solid rgba(128,128,128,0.08);
-            font-weight: 600;
-            font-size: 1.05rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .chart-card .card-header i { color: var(--primary); }
-        .chart-card .card-body { padding: 20px 24px 24px; }
-        .week-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 24px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        .week-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-3px); }
-        .week-header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            padding: 16px 24px;
-            color: #fff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .week-header .badge { background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); color: #fff; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: 50px; }
-        .week-body { padding: 16px 24px; }
-        .week-body .table th { border-top: none; border-bottom: 2px solid rgba(128,128,128,0.08); color: var(--text-color); opacity: 0.6; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 0.6rem 0.5rem; }
-        .week-body .table td { vertical-align: middle; padding: 0.7rem 0.5rem; border-bottom: 1px solid rgba(128,128,128,0.05); }
-        .week-body .table tbody tr:hover { background: rgba(108,99,255,0.04); }
-        .badge-status { padding: 0.3rem 0.9rem; border-radius: 50px; font-weight: 500; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.3px; display: inline-block; }
-        .badge-completed { background: #2ecc71; color: #fff; }
-        .badge-inprogress { background: #f1c40f; color: #212529; }
-        .badge-suspended { background: #e74c3c; color: #fff; }
-        .badge-todo { background: #95a5a6; color: #fff; }
-
-        /* Chatbot styles */
-        #chatbot {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            width: 340px;
-            background: var(--card-bg, #fff);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            display: none;
-            z-index: 999;
-            border: 1px solid rgba(108,99,255,0.2);
-            overflow: hidden;
-        }
-        #chatbot-header {
-            background: linear-gradient(135deg, #6c63ff, #00d2ff);
-            color: #fff;
-            padding: 14px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        #chatbot-header .close-btn { cursor: pointer; font-size: 1.5rem; }
-        #chatMessages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-height: 200px;
-            max-height: 300px;
-        }
-        #chatMessages .bot-msg {
-            background: #6c63ff;
-            color: #fff;
-            align-self: flex-start;
-            border-radius: 16px 16px 16px 0;
-            padding: 10px 16px;
-            max-width: 80%;
-        }
-        #chatMessages .user-msg {
-            background: #00d2ff;
-            color: #fff;
-            align-self: flex-end;
-            border-radius: 16px 16px 0 16px;
-            padding: 10px 16px;
-            max-width: 80%;
-        }
-        #chatInput {
-            border: none;
-            border-top: 1px solid #ddd;
-            padding: 14px 18px;
-            border-radius: 0 0 20px 20px;
-            background: var(--card-bg, #fff);
-            color: var(--text-color, #1a1a2e);
-            outline: none;
-        }
-        #chatbotButton {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #6c63ff, #00d2ff);
-            color: #fff;
-            border: none;
-            font-size: 28px;
-            box-shadow: 0 0 30px rgba(108,99,255,0.4);
-            z-index: 1000;
-            transition: transform 0.3s;
-            cursor: pointer;
-        }
-        #chatbotButton:hover { transform: scale(1.1) rotate(10deg); }
-
-        @media (max-width: 768px) {
-            .stat-card .number { font-size: 2rem; }
-            #chatbot { width: 92%; right: 4%; bottom: 70px; }
-        }
-    </style>
 </head>
 <body>
 
 <!-- ====== NAVBAR ====== -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container">
         <a class="navbar-brand" href="/dashboard"><i class="fas fa-tasks me-2"></i>HSM Task Manager</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -226,14 +50,13 @@
 
 <!-- ====== CONTENU ====== -->
 <div class="container mt-4">
-    <!-- En-tête -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 style="font-weight:700;display:flex;align-items:center;gap:12px;">
                 <i class="fas fa-chart-pie text-primary" style="font-size:2rem;"></i>
                 <span>Dashboard</span>
             </h2>
-            <p class="text-muted" style="margin:0;">Welcome back, <strong sec:authentication="name"></strong>!</p>
+            <p class="text-muted" style="margin:0;">Welcome back, <strong sec:authentication="name">User</strong>!</p>
         </div>
     </div>
 
@@ -274,16 +97,16 @@
         <div class="col-md-6">
             <div class="chart-card">
                 <div class="card-header"><i class="fas fa-chart-pie"></i> Status Distribution</div>
-                <div class="card-body">
-                    <canvas id="statusChart" height="250"></canvas>
+                <div class="card-body" style="position: relative; height:250px;">
+                    <canvas id="statusChart"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="chart-card">
                 <div class="card-header"><i class="fas fa-chart-bar"></i> Test Type Distribution</div>
-                <div class="card-body">
-                    <canvas id="typeChart" height="250"></canvas>
+                <div class="card-body" style="position: relative; height:250px;">
+                    <canvas id="typeChart"></canvas>
                 </div>
             </div>
         </div>
@@ -322,9 +145,9 @@
                                 <td><span class="badge bg-secondary" th:text="${test.type}">Type</span></td>
                                 <td>
                                     <span class="badge-status"
-                                          th:classappend="${test.status == 'COMPLETED' ? 'badge-completed' :
-                                                          test.status == 'IN_PROGRESS' ? 'badge-inprogress' :
-                                                          test.status == 'SUSPENDED' ? 'badge-suspended' : 'badge-todo'}"
+                                          th:classappend="${test.status.name() == 'COMPLETED' ? 'badge-completed' :
+                                                          test.status.name() == 'IN_PROGRESS' ? 'badge-inprogress' :
+                                                          test.status.name() == 'SUSPENDED' ? 'badge-suspended' : 'badge-todo'}"
                                           th:text="${test.status}">Status</span>
                                 </td>
                                 <td th:text="${#temporals.format(test.startDate, 'dd/MM/yyyy')}">Start</td>
@@ -362,29 +185,34 @@
         <span><i class="fas fa-robot me-2"></i>Task Assistant</span>
         <span class="close-btn" id="chatbotClose">&times;</span>
     </div>
-    <div id="chatbot-body" style="display:flex;flex-direction:column;">
+    <div id="chatbot-body" class="d-flex flex-column">
         <div id="chatMessages"></div>
-        <input type="text" id="chatInput" class="form-control" placeholder="Ask something...">
-        <button id="chatSend" class="btn btn-primary" style="border-radius:0 0 20px 20px;width:100%;"><i class="fas fa-paper-plane"></i> Send</button>
+        <div class="input-group p-2 bg-transparent">
+            <input type="text" id="chatInput" class="form-control" placeholder="Ask something...">
+            <button id="chatSend" class="btn btn-primary"><i class="fas fa-paper-plane"></i></button>
+        </div>
     </div>
 </div>
 
-<!-- ====== SCRIPTS (tout intégré) ====== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/chatbot.js}"></script>
 
 <script th:inline="javascript">
     /*<![CDATA[*/
-
-    // 1. DONNÉES DES GRAPHIQUES
     const statusData = /*[[${statusStats}]]*/ {};
     const typeData = /*[[${typeStats}]]*/ {};
 
-    // 2. THÈME
-    (function() {
+    // Gestion du Thème
+    document.addEventListener('DOMContentLoaded', function() {
         const saved = localStorage.getItem('theme');
         if (saved) document.documentElement.setAttribute('data-theme', saved);
+
         const btn = document.getElementById('themeToggle');
         if (btn) {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+
             btn.addEventListener('click', function() {
                 const current = document.documentElement.getAttribute('data-theme');
                 const next = current === 'dark' ? 'light' : 'dark';
@@ -394,162 +222,50 @@
                 if (icon) icon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
             });
         }
-        const themeBtn = document.getElementById('themeToggle');
-        if (themeBtn) {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-            const icon = themeBtn.querySelector('i');
-            if (icon) icon.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        }
-    })();
 
-    // 3. GRAPHIQUES (Chart.js)
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('📊 Status data:', statusData);
-        console.log('📊 Type data:', typeData);
-
+        // Configuration des Graphiques Chart.js
         const ctx1 = document.getElementById('statusChart');
-        if (ctx1 && Object.keys(statusData).length > 0) {
+        if (ctx1 && statusData && Object.keys(statusData).length > 0) {
             new Chart(ctx1, {
                 type: 'doughnut',
                 data: {
                     labels: Object.keys(statusData),
                     datasets: [{
                         data: Object.values(statusData),
-                        backgroundColor: ['#95a5a6', '#f1c40f', '#e74c3c', '#2ecc71'],
-                        borderWidth: 0,
-                        hoverOffset: 8
+                        backgroundColor: ['#2ecc71', '#f1c40f', '#e74c3c', '#95a5a6'],
+                        borderWidth: 0
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#1a1a2e',
-                                padding: 16,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
-                        }
-                    },
-                    cutout: '65%'
+                    plugins: { legend: { position: 'bottom' } }
                 }
             });
-        } else {
-            console.warn('⚠️ Status chart not rendered (no data or canvas missing)');
         }
 
         const ctx2 = document.getElementById('typeChart');
-        if (ctx2 && Object.keys(typeData).length > 0) {
+        if (ctx2 && typeData && Object.keys(typeData).length > 0) {
             new Chart(ctx2, {
                 type: 'bar',
                 data: {
                     labels: Object.keys(typeData),
                     datasets: [{
-                        label: 'Number of tests',
+                        label: 'Tests',
                         data: Object.values(typeData),
-                        backgroundColor: ['rgba(108,99,255,0.75)', 'rgba(0,210,255,0.75)'],
-                        borderColor: ['#6c63ff', '#00d2ff'],
-                        borderWidth: 2,
-                        borderRadius: 8,
-                        barPercentage: 0.6
+                        backgroundColor: ['#6c63ff', '#00d2ff'],
+                        borderRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1,
-                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#1a1a2e'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#1a1a2e'
-                            }
-                        }
-                    }
+                    scales: { y: { beginAtZero: true } }
                 }
             });
-        } else {
-            console.warn('⚠️ Type chart not rendered (no data or canvas missing)');
         }
     });
-
-    // 4. CHATBOT
-    (function() {
-        const chatbot = document.getElementById('chatbot');
-        const toggleBtn = document.getElementById('chatbotButton');
-        const closeBtn = document.getElementById('chatbotClose');
-        const sendBtn = document.getElementById('chatSend');
-        const input = document.getElementById('chatInput');
-        const messages = document.getElementById('chatMessages');
-
-        if (!chatbot || !toggleBtn || !closeBtn || !sendBtn || !input || !messages) {
-            console.error('❌ Chatbot elements missing');
-            return;
-        }
-
-        toggleBtn.addEventListener('click', function() {
-            const isOpen = chatbot.style.display === 'block';
-            chatbot.style.display = isOpen ? 'none' : 'block';
-            if (!isOpen) {
-                input.focus();
-                if (messages.children.length === 0) {
-                    appendMessage('bot-msg', "👋 Hi! I'm your task assistant. Ask me anything about your tasks.");
-                }
-            }
-        });
-
-        closeBtn.addEventListener('click', function() {
-            chatbot.style.display = 'none';
-        });
-
-        function appendMessage(cls, text) {
-            const div = document.createElement('div');
-            div.className = cls;
-            div.textContent = text;
-            messages.appendChild(div);
-            messages.scrollTop = messages.scrollHeight;
-        }
-
-        function sendMessage() {
-            const text = input.value.trim();
-            if (!text) return;
-            appendMessage('user-msg', text);
-            input.value = '';
-            setTimeout(() => {
-                let response = "I'm here to help! You can ask about tasks, status, or deadlines.";
-                const lower = text.toLowerCase();
-                if (lower.includes('hello') || lower.includes('hi') || lower.includes('bonjour')) {
-                    response = "Hello! How can I assist you with your tasks today?";
-                } else if (lower.includes('status') || lower.includes('etat')) {
-                    response = "You can view task statuses in the dashboard. Currently, we have tasks in progress, completed, and suspended.";
-                } else if (lower.includes('deadline') || lower.includes('date')) {
-                    response = "Deadlines are displayed in the task list. You can sort by completion date.";
-                } else if (lower.includes('project') || lower.includes('projet')) {
-                    response = "Projects are listed in the Projects tab. Each project contains multiple test classes.";
-                } else if (lower.includes('help') || lower.includes('aide')) {
-                    response = "I can help with: tasks, projects, statuses, deadlines. Just ask!";
-                }
-                appendMessage('bot-msg', response);
-            }, 600);
-        }
-
-        sendBtn.addEventListener('click', sendMessage);
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        console.log('✅ Chatbot initialized.');
-    })();
-
     /*]]>*/
 </script>
 </body>
