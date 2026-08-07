@@ -125,7 +125,7 @@
                 </div>
                 <div class="week-body">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover align-middle">
                             <thead>
                             <tr>
                                 <th>Test Class</th>
@@ -136,6 +136,7 @@
                                 <th>Est. Hours</th>
                                 <th>Completion</th>
                                 <th>Days Left</th>
+                                <th>Report</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -163,9 +164,21 @@
                                     </span>
                                     <span th:if="${test.completionDate == null}" class="text-muted">—</span>
                                 </td>
+                                <!-- Colonne de Rapport Automatique -->
+                                <td>
+                                    <span th:with="rep=${autoReports[test.id]}">
+                                        <span th:if="${rep == 'Completed'}" class="badge bg-success"><i class="fas fa-check me-1"></i>Completed</span>
+                                        <span th:if="${rep == 'Suspended'}" class="badge bg-danger"><i class="fas fa-pause me-1"></i>Suspended</span>
+                                        <span th:if="${#strings.startsWith(rep, 'At Risk')}" class="badge bg-danger text-wrap"><i class="fas fa-exclamation-triangle me-1"></i><span th:text="${rep}">At Risk</span></span>
+                                        <span th:if="${rep == 'Due Today'}" class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Due Today</span>
+                                        <span th:if="${#strings.startsWith(rep, 'On Track')}" class="badge bg-info text-dark"><i class="fas fa-running me-1"></i><span th:text="${rep}">On Track</span></span>
+                                        <span th:if="${rep == 'In Progress'}" class="badge bg-primary"><i class="fas fa-spinner me-1"></i>In Progress</span>
+                                        <span th:if="${rep == 'Pending'}" class="badge bg-secondary"><i class="fas fa-hourglass-start me-1"></i>Pending</span>
+                                    </span>
+                                </td>
                             </tr>
                             <tr th:if="${entry.value.isEmpty()}">
-                                <td colspan="8" class="text-center text-muted py-3">
+                                <td colspan="9" class="text-center text-muted py-3">
                                     <i class="fas fa-inbox me-2"></i> No tests for this week
                                 </td>
                             </tr>

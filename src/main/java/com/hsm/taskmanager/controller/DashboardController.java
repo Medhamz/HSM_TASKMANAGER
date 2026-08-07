@@ -42,7 +42,7 @@ public class DashboardController {
 
         List<TestClass> allTests = testClassService.findAll();
 
-        // Récupération et conversion des clés Enum -> String pour éviter les erreurs de sérialisation JSON/Thymeleaf
+        // Conversions des statistiques pour JSON / Chart.js
         Map<Status, Long> rawStatusStats = testClassService.countByStatus();
         Map<TestType, Long> rawTypeStats = testClassService.countByType();
 
@@ -54,6 +54,12 @@ public class DashboardController {
         Map<String, Long> typeStats = new HashMap<>();
         if (rawTypeStats != null) {
             rawTypeStats.forEach((k, v) -> typeStats.put(k.name(), v));
+        }
+
+        // Génération automatique des rapports par test
+        Map<Long, String> autoReports = new HashMap<>();
+        for (TestClass test : allTests) {
+            autoReports.put(test.getId(), generateAutoReport(test, today));
         }
 
         // Organisation par semaines
@@ -106,8 +112,35 @@ public class DashboardController {
         model.addAttribute("totalTests", allTests.size());
         model.addAttribute("statusStats", statusStats);
         model.addAttribute("typeStats", typeStats);
+        model.addAttribute("autoReports", autoReports);
         model.addAttribute("today", today);
 
         return "dashboard";
+    }
+
+    /**
+     * Méthode d'analyse automatique du rapport quotidien pour un test
+     */
+    private String generateAutoReport(TestClass test, LocalDate today) {
+        if (test.getStatus() == Status.COMPLETED) {
+            return "Completed";
+        }
+        if (test.getStatus() == Status.SUSPENDED) {
+            return "Suspended";
+        }
+        if (test.getCompletionDate() != null) {
+            long daysLeft = ChronoUnit.DAYS.between(today, test.getCompletionDate());
+            if (daysLeft < 0) {
+                return "At Risk (" + Math.abs(daysLeft) + "d overdue)";
+            } else if (daysLeft == 0) {
+                return "Due Today";
+            } else {
+                return "On Track (" + daysLeft + "d left)";
+            }
+        }
+        if (test.getStatus() == Status.IN_PROGRESS) {
+            return "In Progress";
+        }
+        return "Pending";
     }
 }
